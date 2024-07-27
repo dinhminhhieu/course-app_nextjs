@@ -1,0 +1,130 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider     = "mysql"
+  url          = env("DATABASE_URL")
+  relationMode = "prisma"
+}
+
+model Course {
+  id           String  @id @default(uuid())
+  instructorId String
+  title        String  @db.Text
+  subTitle     String? @db.Text
+  description  String? @db.Text
+  thumbnail    String? @db.Text
+  price        Float?
+  isPublished  Boolean @default(false)
+
+  categoryId String
+  category   Category @relation(fields: [categoryId], references: [id])
+
+  subCategoryId String
+  subCategory   SubCategory @relation(fields: [subCategoryId], references: [id])
+
+  levelLearnerId String?
+  LevelLearner   LevelLearner? @relation(fields: [levelLearnerId], references: [id])
+
+  lessons Lesson[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([categoryId])
+  @@index([subCategoryId])
+  @@index([levelLearnerId])
+}
+
+model Category {
+  id            String        @id @default(uuid())
+  name          String        @unique
+  subCategories SubCategory[]
+  courses       Course[]
+}
+
+model SubCategory {
+  id   String @id @default(uuid())
+  name String
+
+  categoryId String
+  category   Category @relation(fields: [categoryId], references: [id])
+  Course     Course[]
+
+  @@index([categoryId])
+}
+
+model LevelLearner {
+  id   String @id @default(uuid())
+  name String @unique
+
+  courses Course[]
+}
+
+model Lesson {
+  id             String  @id @default(uuid())
+  title          String  @db.Text
+  description    String? @db.Text
+  videoLessonUrl String? @db.Text
+  position       Int
+  isPublished    Boolean @default(false)
+  isFree         Boolean @default(false)
+
+  courseId String
+  course   Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  muxData MuxData?
+
+  resources Resource[]
+
+  progress Progress[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([courseId])
+}
+
+model MuxData {
+  id         String @id @default(uuid())
+  assetId    String @db.Text
+  playbackId String @db.Text
+
+  lessonId String @unique
+  lesson   Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+}
+
+model Resource {
+  id      String @id @default(uuid())
+  name    String @db.Text
+  fileUrl String @db.Text
+
+  lessonId String
+  lesson   Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([lessonId])
+}
+
+model Progress {
+  id          String  @id @default(uuid())
+  studentId   String  @unique
+  isCompleted Boolean @default(false)
+
+  lessonId String
+  lesson   Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([lessonId])
+}
