@@ -19,7 +19,7 @@ export const POST = async (req: NextRequest) => {
     });
     return NextResponse.json(newCourse, { status: 201 });
   } catch (error) {
-    console.log("[courses_POST] POST / error", error);
-    return new NextResponse("Internal Server Error", { status: 500 });
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    return new NextResponse(errorMessage, { status: 500 });
   }
 };

@@ -1,17 +1,20 @@
 import { db } from "@/lib/db";
+import ResponseData from "@/lib/response";
 import { auth } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
 
-export const POST = async (
+export const DELETE = async (
   req: NextRequest,
-  { params }: { params: { courseId: string } }
+  {
+    params,
+  }: { params: { courseId: string; lessonId: string; resourceId: string } }
 ) => {
   try {
     const { userId } = auth();
     if (!userId) {
       return new NextResponse("Unauthorized", { status: 401 });
     }
-    const course = db.course.findUnique({
+    const course = await db.course.findUnique({
       where: {
         id: params.courseId,
         instructorId: userId,
@@ -21,25 +24,26 @@ export const POST = async (
       return new NextResponse("Khóa học không tồn tại!", { status: 404 });
     }
 
-    const lastLesson = await db.lesson.findFirst({
+    const lesson = await db.lesson.findUnique({
       where: {
+        id: params.lessonId,
         courseId: params.courseId,
       },
-      orderBy: {
-        position: "desc",
-      },
     });
+    if (!lesson) {
+      return new NextResponse("Bài học không tồn tại!", { status: 404 });
+    }
 
-    const newPosition = lastLesson ? lastLesson.position + 1 : 0;
-    const { titleLesson } = await req.json();
-    const newLesson = await db.lesson.create({
-      data: {
-        titleLesson,
-        courseId: params.courseId,
-        position: newPosition,
+    await db.resource.delete({
+      where: {
+        id: params.resourceId,
+        lessonId: params.lessonId,
       },
     });
-    return NextResponse.json(newLesson, { status: 201 });
+    return ResponseData({
+      message: "Xóa tài nguyên bài học thành công!",
+      status: 200,
+    });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     return new NextResponse(errorMessage, { status: 500 });

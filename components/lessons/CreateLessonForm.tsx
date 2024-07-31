@@ -3,7 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { Course } from "@prisma/client";
+import { Course, Lesson } from "@prisma/client";
 import Link from "next/link";
 import { Button } from "../ui/button";
 import { usePathname, useRouter } from "next/navigation";
@@ -18,6 +18,8 @@ import {
 import { Input } from "../ui/input";
 import toast from "react-hot-toast";
 import axios from "axios";
+import LessonList from "./LessonList";
+import { Loader2 } from "lucide-react";
 
 const formSchema = z.object({
   titleLesson: z.string().min(2, {
@@ -26,7 +28,7 @@ const formSchema = z.object({
 });
 
 interface CreateLessonFormProps {
-  course: Course;
+  course: Course & { lessons: Lesson[] };
 }
 
 const CreateLessonForm = ({ course }: CreateLessonFormProps) => {
@@ -50,19 +52,37 @@ const CreateLessonForm = ({ course }: CreateLessonFormProps) => {
     },
   });
 
+  const { isValid, isSubmitting } = form.formState;
+
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
-      const responseData = await axios.post(
+      const response = await axios.post(
         `/api/courses/${course.id}/lessons`,
         values
       );
       router.push(
-        `/instructor/courses/${course.id}/lessons/${responseData.data.id}`
+        `/instructor/courses/${course.id}/lessons/${response.data.id}`
       );
       toast.success("Tạo bài học thành công!");
     } catch (error) {
       console.log("Failed to create new lesson!", error);
       toast.error("Tạo bài học không thành công!");
+    }
+  };
+
+  const onReOrder = async (updateData: { id: string; position: number }[]) => {
+    try {
+      const data = await axios.put(
+        `/api/courses/${course.id}/lessons/reorder`,
+        {
+          lessonlist: updateData,
+        }
+      );
+      console.log(data);
+      toast.success("Sắp xếp bài học thành công!");
+    } catch (error) {
+      console.log("Failed to reorder lessons!", error);
+      toast.error("Sắp xếp bài học không thành công!");
     }
   };
   return (
@@ -76,9 +96,16 @@ const CreateLessonForm = ({ course }: CreateLessonFormProps) => {
           </Link>
         ))}
       </div>
-      <h1 className="text-2xl mt-7 font-bold uppercase text-center">
+      <h1 className="text-2xl mt-3 font-bold uppercase text-center">
         Chương trình giảng dạy
       </h1>
+      <LessonList
+        lessonItems={course.lessons || []}
+        onReOrder={onReOrder}
+        onEdit={(id) =>
+          router.push(`/instructor/courses/${course.id}/lessons/${id}`)
+        }
+      />
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
           <FormField
@@ -100,7 +127,13 @@ const CreateLessonForm = ({ course }: CreateLessonFormProps) => {
                 Hủy bỏ
               </Button>
             </Link>
-            <Button type="submit">Xác nhận</Button>
+            <Button type="submit" disabled={!isValid || isSubmitting}>
+              {isSubmitting ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                "Tạo bài học"
+              )}
+            </Button>
           </div>
         </form>
       </Form>

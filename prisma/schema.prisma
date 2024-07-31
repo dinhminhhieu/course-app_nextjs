@@ -70,7 +70,7 @@ model LevelLearner {
 
 model Lesson {
   id             String  @id @default(uuid())
-  title          String  @db.Text
+  titleLesson    String  @db.Text
   description    String? @db.Text
   videoLessonUrl String? @db.Text
   position       Int

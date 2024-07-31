@@ -17,6 +17,7 @@ import { Input } from "@/components/ui/input";
 import ComboBox from "../custom/ComboBox";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
+import { Loader2 } from "lucide-react";
 
 const formSchema = z.object({
   title: z.string().min(2, {
@@ -49,6 +50,8 @@ const CreateCourseForm = ({ categories }: CreateCourseFormProps) => {
       subCategoryId: "",
     },
   });
+
+  const { isValid, isSubmitting } = form.formState;
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
@@ -116,7 +119,13 @@ const CreateCourseForm = ({ categories }: CreateCourseFormProps) => {
               </FormItem>
             )}
           />
-          <Button type="submit">Xác nhận</Button>
+          <Button type="submit" disabled={!isValid || isSubmitting}>
+            {isSubmitting ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              "Tạo khóa học"
+            )}
+          </Button>
         </form>
       </Form>
     </div>

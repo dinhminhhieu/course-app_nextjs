@@ -14,6 +14,13 @@ const LessonPage = async ({ params }: { params: { courseId: string } }) => {
       id: params.courseId,
       instructorId: userId,
     },
+    include: {
+      lessons: {
+        orderBy: {
+          position: "asc",
+        },
+      },
+    },
   });
 
   if (!course) {

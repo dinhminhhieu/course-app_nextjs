@@ -21,7 +21,8 @@ import Link from "next/link";
 import axios from "axios";
 import { usePathname, useRouter } from "next/navigation";
 import toast from "react-hot-toast";
-import { Trash } from "lucide-react";
+import { Loader2, Trash } from "lucide-react";
+import AlertDialogDelete from "../custom/AlertDialogDelete";
 
 const formSchema = z.object({
   title: z.string().min(2, {
@@ -83,6 +84,8 @@ const EditCourseForm = ({
     },
   });
 
+  const { isValid, isSubmitting } = form.formState;
+
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
       const response = await axios.patch(`/api/courses/${course.id}`, values);
@@ -91,6 +94,18 @@ const EditCourseForm = ({
     } catch (error) {
       console.log("Failed to update the course!", error);
       toast.error("Cập nhật khóa học không thành công!");
+    }
+  };
+
+  const onDelete = async () => {
+    try {
+      const response = await axios.delete(`/api/courses/${course.id}`);
+      toast.success(response.data.message);
+      router.push("/instructor/courses");
+      router.refresh();
+    } catch (error) {
+      console.log("Failed to delete the course!", error);
+      toast.error("Xóa khóa học không thành công!");
     }
   };
   return (
@@ -106,10 +121,8 @@ const EditCourseForm = ({
           ))}
         </div>
         <div className="flex items-start gap-5">
-          <Button variant="outline">Public</Button>
-          <Button>
-            <Trash className="h-4 w-4" />
-          </Button>
+          <Button variant="outline">Publish</Button>
+          <AlertDialogDelete item="Khóa học" onDelete={onDelete} />
         </div>
       </div>
 
@@ -228,8 +241,9 @@ const EditCourseForm = ({
                 <FormLabel>Thumnail khóa học</FormLabel>
                 <FormControl>
                   <UploadFile
-                    endpoint="imageUploader"
+                    endpoint="courseThumbnail"
                     value={field.value || ""}
+                    page="Edit Course"
                     onChange={(url) => field.onChange(url)}
                   />
                 </FormControl>
@@ -262,7 +276,13 @@ const EditCourseForm = ({
                 Hủy bỏ
               </Button>
             </Link>
-            <Button type="submit">Lưu thông tin</Button>
+            <Button type="submit" disabled={!isValid || isSubmitting}>
+              {isSubmitting ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                "Lưu thông tin"
+              )}
+            </Button>
           </div>
         </form>
       </Form>
