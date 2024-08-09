@@ -23,6 +23,7 @@ import { usePathname, useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { Loader2, Trash } from "lucide-react";
 import AlertDialogDelete from "../custom/AlertDialogDelete";
+import PublishButton from "../custom/PublishButton";
 
 const formSchema = z.object({
   title: z.string().min(2, {
@@ -49,12 +50,14 @@ interface EditCourseFormProps {
     subCategories: { label: string; value: string }[];
   }[];
   levelLearner: { label: string; value: string }[];
+  isCompleted: boolean;
 }
 
 const EditCourseForm = ({
   course,
   categories,
   levelLearner,
+  isCompleted,
 }: EditCourseFormProps) => {
   const routes = [
     {
@@ -108,6 +111,19 @@ const EditCourseForm = ({
       toast.error("Xóa khóa học không thành công!");
     }
   };
+
+  const onClickPublish = async () => {
+    try {
+      const response = course.isPublished
+        ? await axios.post(`/api/courses/${course.id}/unpublish`)
+        : await axios.post(`/api/courses/${course.id}/publish`);
+      toast.success(response.data.message);
+      router.refresh();
+    } catch (error) {
+      console.log("Failed to publish the course!", error);
+      toast.error("Xuất bản khóa học không thành công!");
+    }
+  };
   return (
     <>
       <div className="flex flex-col gap-2 mb-7 sm:flex-row sm:justify-between">
@@ -121,7 +137,11 @@ const EditCourseForm = ({
           ))}
         </div>
         <div className="flex items-start gap-5">
-          <Button variant="outline">Publish</Button>
+          <PublishButton
+            disabled={!isCompleted}
+            isPublished={course.isPublished}
+            onClickPublish={onClickPublish}
+          />
           <AlertDialogDelete item="Khóa học" onDelete={onDelete} />
         </div>
       </div>
@@ -153,7 +173,9 @@ const EditCourseForm = ({
             name="subTitle"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Tiêu đề phụ</FormLabel>
+                <FormLabel>
+                  Tiêu đề phụ <span className="text-red-500">*</span>
+                </FormLabel>
                 <FormControl>
                   <Input
                     placeholder="Ex: Nhập tiêu đề phụ của khóa học của bạn..."
@@ -188,7 +210,9 @@ const EditCourseForm = ({
               name="categoryId"
               render={({ field }) => (
                 <FormItem className="flex flex-col">
-                  <FormLabel>Danh mục khóa học</FormLabel>
+                  <FormLabel>
+                    Danh mục khóa học <span className="text-red-500">*</span>
+                  </FormLabel>
                   <FormControl>
                     <ComboBox options={categories} {...field} />
                   </FormControl>
@@ -202,7 +226,9 @@ const EditCourseForm = ({
               name="subCategoryId"
               render={({ field }) => (
                 <FormItem className="flex flex-col">
-                  <FormLabel>Danh mục con</FormLabel>
+                  <FormLabel>
+                    Danh mục con <span className="text-red-500">*</span>
+                  </FormLabel>
                   <FormControl>
                     <ComboBox
                       options={
@@ -224,7 +250,9 @@ const EditCourseForm = ({
               name="levelLearnerId"
               render={({ field }) => (
                 <FormItem className="flex flex-col">
-                  <FormLabel>Chọn level người học</FormLabel>
+                  <FormLabel>
+                    Chọn level người học <span className="text-red-500">*</span>
+                  </FormLabel>
                   <FormControl>
                     <ComboBox options={levelLearner} {...field} />
                   </FormControl>
@@ -238,7 +266,9 @@ const EditCourseForm = ({
             name="thumbnail"
             render={({ field }) => (
               <FormItem className="flex flex-col">
-                <FormLabel>Thumnail khóa học</FormLabel>
+                <FormLabel>
+                  Thumnail khóa học <span className="text-red-500">*</span>
+                </FormLabel>
                 <FormControl>
                   <UploadFile
                     endpoint="courseThumbnail"
@@ -257,7 +287,9 @@ const EditCourseForm = ({
             name="price"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Giá khóa học</FormLabel>
+                <FormLabel>
+                  Giá khóa học <span className="text-red-500">*</span>
+                </FormLabel>
                 <FormControl>
                   <Input
                     type="number"

@@ -75,7 +75,9 @@ const CreateCourseForm = ({ categories }: CreateCourseFormProps) => {
             name="title"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Tên khóa học</FormLabel>
+                <FormLabel>
+                  Tên khóa học <span className="text-red-500">*</span>
+                </FormLabel>
                 <FormControl>
                   <Input placeholder="Nhập tên khóa học ..." {...field} />
                 </FormControl>
@@ -89,7 +91,9 @@ const CreateCourseForm = ({ categories }: CreateCourseFormProps) => {
             name="categoryId"
             render={({ field }) => (
               <FormItem className="flex flex-col">
-                <FormLabel>Danh mục khóa học</FormLabel>
+                <FormLabel>
+                  Danh mục khóa học <span className="text-red-500">*</span>
+                </FormLabel>
                 <FormControl>
                   <ComboBox options={categories} {...field} />
                 </FormControl>
@@ -103,7 +107,9 @@ const CreateCourseForm = ({ categories }: CreateCourseFormProps) => {
             name="subCategoryId"
             render={({ field }) => (
               <FormItem className="flex flex-col">
-                <FormLabel>Danh mục con</FormLabel>
+                <FormLabel>
+                  Danh mục con <span className="text-red-500">*</span>
+                </FormLabel>
                 <FormControl>
                   <ComboBox
                     options={

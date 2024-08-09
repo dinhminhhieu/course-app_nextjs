@@ -73,6 +73,7 @@ const CourseBasicInfo = async ({
           label: levelLearerItem.name,
           value: levelLearerItem.id,
         }))}
+        isCompleted={isCompleted}
       />
     </div>
   );
